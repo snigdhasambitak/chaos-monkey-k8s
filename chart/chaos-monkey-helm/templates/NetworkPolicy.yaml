@@ -1,0 +1,22 @@
+{{ if .Values.networkPolicyEnabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  policyTypes:
+    - Ingress
+  podSelector:
+    matchLabels:
+      release: {{ .Release.Name }}
+  ingress:
+    - from:
+      - podSelector:
+          matchLabels:
+            app: prometheus
+      - namespaceSelector:
+          matchLabels:
+            prometheus-namespace-type: master
+    - ports:
+        - port: {{ .Values.ContainerPort }}
+{{ end }}

@@ -1,0 +1,27 @@
+{{ if .Values.ServiceCreate }}
+apiVersion: v1
+kind: Service
+metadata:
+    name: {{ .Release.Name }}
+    annotations:
+    {{ if .Values.PrometheusScrapeEnabled }}
+        prometheus.io/scrape: "{{ .Values.PrometheusScrapeEnabled }}"
+        prometheus.io/path: "{{ .Values.PrometheusScrapePath }}"
+        prometheus.io/port: "{{ .Values.PrometheusScrapePort }}"
+        prometheus.io/hpa: "true"
+    {{ end }}
+    labels:
+        app: "{{ .Values.App }}"
+        chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+        release: {{ .Release.Name }}
+spec:
+    type: "ClusterIP"
+    selector:
+        app: "{{ .Values.App }}"
+        release: {{ .Release.Name }}
+    ports:
+        - protocol: TCP
+          port: {{ .Values.ServerPort }}
+          targetPort: {{ .Values.ContainerPort }}
+
+{{ end }}

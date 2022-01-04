@@ -1,0 +1,56 @@
+# Basic application identity and properties
+App: "chaos-monkey-app"
+ImagePullPolicy: "Always"
+
+#change to 443 later
+ServerPort: 80
+
+# Container Image details and details as to where the HELM repo is present
+Image: "docker.io/snigdhasambit/chaos-monkey-k8s"
+ImageVersion: "1.2" # This value is overwritten in any deploy job.
+
+#ContainerPort: 8080
+
+# Resource Requests and Limits
+# This would be where the application memory and resource needs are specified
+Cpu: "20m"
+Memory: "100Mi"
+MaxCpu: "100m"
+MaxMemory: "300Mi"
+
+## Deployment Strategy
+#MaxUnavailable: 0
+#MaxSurge: 1
+
+# Capacity and Scaling - Most of this section is commented but can be used to customize
+MinReplicas: 1
+MaxReplicas: 1
+HPACreate: "true"
+scaleOnCPU: "true"
+scaleOnMemory: "true"
+HPACpuUtilTarget: 80
+HPAMemoryUtilTarget: 80
+
+### only specify one of the two below
+PDBMaxUnavailable: 1
+
+##Service
+ServiceCreate: "false"
+
+##Service Account
+serviceAccount:
+  annotations: {}
+  
+# Probes
+
+# Prometheus Scraping is specified to true by default but requires setting up from the application
+# to get the best of this. Use spring-actuators to manage prometheus.
+PrometheusScrapeEnabled: "true"
+PrometheusScrapePath: "/metrics"
+PrometheusScrapePort: "9000"
+
+# Network Policy
+networkPolicyEnabled: "true"
+
+env:
+  DEBUG: "True"

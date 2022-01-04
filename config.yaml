@@ -1,0 +1,25 @@
+# NB: to run in debug mode, export DEBUG=True
+
+# Set to True to just print the pod to be deleted, without taking action
+dryRun: True
+
+# How frequently it deletes pods
+updateFrequency: 20
+
+# If set to True, it will randomly sleep for a time between 1->updateFrequency seconds, rather than a regular cadence
+randomiseFrequency: False
+
+# Seconds that the k8s api call will allow for the pod to shut down gracefully. defaults to 0
+gracePeriod: 60
+
+# How many pods to delete per cycle. Set to 0 to skip, defaults to 1
+numPodsToDelete: 1
+
+# [optional] Only terminates pods within this namespace. Defaults to all namespaces
+includedNamespaces: ['test-delete']
+
+# [optional] Ignores pods in these namespaces. Defaults to kube-system
+excludedNamespaces: ['kube-system', 'default']
+
+# [optional] Only delete pods using this annotations. Defaults to empty ''. For testing please annotate your deployment with something like `chaos-monkey-k8s/enabled` and test
+podAnnotation: 'chaos-monkey-k8s/enabled'

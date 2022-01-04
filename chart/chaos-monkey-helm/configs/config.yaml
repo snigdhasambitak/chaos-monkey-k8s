@@ -1,0 +1,9 @@
+dryRun: False
+DEBUG: True
+updateFrequency: 45
+gracePeriod: 30
+randomiseFrequency: False
+numPodsToDelete: 1
+includedNamespaces: ['']
+excludedNamespaces: ['kube-system', 'default']
+podAnnotation: ''

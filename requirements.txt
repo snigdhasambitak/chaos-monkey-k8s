@@ -1,0 +1,4 @@
+kubernetes
+pyyaml
+dacite
+prometheus_client

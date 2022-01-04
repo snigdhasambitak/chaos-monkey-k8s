@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  annotations:
+    {{ if .Values.PrometheusScrapeEnabled }}
+    prometheus.io/scrape: "{{ .Values.PrometheusScrapeEnabled }}"
+    prometheus.io/path: "{{ .Values.PrometheusScrapePath }}"
+    prometheus.io/port: "{{ .Values.PrometheusScrapePort }}"
+    prometheus.io/hpa: "true"
+    {{ end }}
+  labels:
+    app: "{{ .Values.App }}"
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.App }}
+      release: {{ .Release.Name }}
+  replicas: {{ .Values.MinReplicas }}
+  strategy:
+    rollingUpdate:
+      maxUnavailable: {{ .Values.UpdateStrategy_minAvailable }}
+      maxSurge: {{ .Values.UpdateStrategy_maxSurge }}
+  template:
+    metadata:
+      labels:
+        app: "{{ .Values.App }}"
+        release: {{ .Release.Name }}
+    spec:
+      serviceAccountName: {{ .Release.Name }}
+      containers:
+        - name: {{ .Values.App }}
+          image: "{{ .Values.Image }}:{{ .Values.ImageVersion }}"
+          imagePullPolicy: {{ .Values.ImagePullPolicy }}
+#          ports:
+#            - containerPort: {{ .Values.ContainerPort }}
+          env:
+            - name: DEBUG
+              value: "{{ .Values.env.DEBUG }}"
+            - name: CONFIG_FILE
+              value: "/chaos-monkey/config.yaml"
+          volumeMounts:
+            - name: config-volume
+              mountPath: /chaos-monkey
+              readOnly: true
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            limits:
+                cpu: {{ .Values.MaxCpu | quote }}
+                memory: {{ .Values.MaxMemory | quote }}
+            requests:
+                cpu: {{ .Values.Cpu | quote }}
+                memory: {{ .Values.Memory | quote }}
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ .Release.Name }}-configmap
+      restartPolicy: Always
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 70
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: release
+                  operator: In
+                  values:
+                  - {{ .Release.Name }}
+              topologyKey: kubernetes.io/hostname
+          - weight: 30
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: release
+                  operator: In
+                  values:
+                  - {{ .Release.Name }}
+              topologyKey: topology.kubernetes.io/zone
